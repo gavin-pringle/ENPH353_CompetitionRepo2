@@ -1,0 +1,19 @@
+<launch>
+    <node pkg="controller_pkg"
+         type="start_up.py"
+         name="start_up" 
+         output="screen">
+    </node>
+
+    <node pkg="controller_pkg"
+         type="line_follow.py"
+         name="line_follow" 
+         output="screen">
+    </node>
+
+    <node pkg="controller_pkg"
+         type="TimeTrialsTimer.py"
+         name="TimeTrialsTimer" 
+         output="screen">
+    </node>
+</launch>
