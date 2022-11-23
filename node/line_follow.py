@@ -89,8 +89,8 @@ class image_converter:
     # Find the average x coordinate
     coordR = sum(coordRarr)//len(coordRarr)
 
-    if leftSum <= 100:
-      if rightSum <= 100 or (coordL <= 100 and coordR >= imgWidth - 100):
+    if leftSum <= 300:
+      if rightSum <= 300 or (coordL <= 100 and coordR >= imgWidth - 100):
         # If cannot detect either line, line is not detected
         coord = -1
       elif rightSum >= 700:
@@ -99,7 +99,7 @@ class image_converter:
       else:
         # If can detect right line but not left line, follow right line
         coord = (coordR-(imgWidth//2)) * 2
-    elif rightSum <= 100:
+    elif rightSum <= 300:
       if leftSum >= 700:
         # If right line weak and left line strong, hard turn right
         coord = imgWidth
