@@ -14,17 +14,24 @@ from cv_bridge import CvBridge, CvBridgeError
 
 ## Class that subscribes to image stream and can also publish velocity messages
 #
-#  Uses OpenCV to detect line 
+# Uses OpenCV to detect line 
 class image_converter:
 
   ## Constructor that declares which topics are being published to and subscribed to
   def __init__(self):
     self.drive_pub = rospy.Publisher("/R1/cmd_vel", Twist, queue_size=1)
     self.bridge = CvBridge()
-    self.image_sub = rospy.Subscriber("/R1/pi_camera/image_raw",Image,self.callback, queue_size=3)
+    self.image_sub = rospy.Subscriber("/R1/pi_camera/image_raw",Image,self.image_callback,queue_size=1,buff_size=2**24)
+    self.cross_sub = rospy.Subscriber("/crosswalk", String, self.crosswalk_callback)
+    # Set class member keeping track of whether cross walk is detected to 0 (no crosswalk initially)
+    self.crosswalk_detected = "0"
 
   ## Callback function that can publish velocity commands to the drive topic
-  def callback(self,data):
+  def image_callback(self,data):
+    # If ped_detect.py detects the crosswalk, let that node control the robot's movement
+    if self.crosswalk_detected == "1":
+      return
+
     # convert image to a format compatible with OpenCV
     try:
       cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
@@ -124,21 +131,22 @@ class image_converter:
         break
     
     # Show Processed image of what robot sees and where it thinks the road is
+    '''
     cv2.putText(mask, text=str(leftSum) + "  " + str(rightSum) + "  " + str(state), org=(20, 20), 
                 fontFace=cv2.FONT_HERSHEY_TRIPLEX, fontScale=0.5, color=(255, 100, 255),thickness=1)
     cv2.imshow("raw", mask)
-    cv2.waitKey(3)
+    cv2.waitKey(3)'''
     
     move = Twist()
     if coord == -1:
       # If the road is not detected, curve left 
       move.angular.z = 1
-      print("road not detected")
+      print("Road not detected")
     else:
       # If a coordinate is known, find the error and turn toward the coordinate
       error = coord - (imgWidth//2)
       move.angular.z = -1 * error // 100
-      print("error: "+str(error))
+      print(str(state))
 
     # Move forward at a constant speed of 1/5
     move.linear.x = 1 / 5
@@ -149,11 +157,20 @@ class image_converter:
     except CvBridgeError as e:
       print(e)
 
+  # Subscribes to crosswalk topic. If there is a new message to the topic,
+  # check to see if the crosswalk is detected and set the class member to 
+  # "1" if it is.
+  def crosswalk_callback(self, data):
+    if "1" in str(data):
+      self.crosswalk_detected = "1"
+    else:
+      self.crosswalk_detected = "0"
+
 ## Main function that keeps the simulation running until it is stopped by a user
 def main(args):
+  # name of node is line_follow
+  rospy.init_node('line_follow', anonymous=True)
   ic = image_converter()
-  # name of node is line_detector
-  rospy.init_node('line_detector', anonymous=True)
   try:
     rospy.spin()
   except KeyboardInterrupt:
