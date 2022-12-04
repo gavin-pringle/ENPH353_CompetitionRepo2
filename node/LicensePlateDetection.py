@@ -70,13 +70,13 @@ class image_converter:
     White = White1 + White2 + White3
 
 
-    cv2.imshow("Raw", img_hsv)
-    cv2.waitKey(1)
+    # cv2.imshow("Raw", img_hsv)
+    # cv2.waitKey(1)
 
     img_blur = cv2.medianBlur(White, 5)
 
-    cv2.imshow("BlurWhite", img_blur)
-    cv2.waitKey(1)
+    # cv2.imshow("BlurWhite", img_blur)
+    # cv2.waitKey(1)
 
     contours, hierarchy = cv2.findContours(img_blur, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     
@@ -97,37 +97,99 @@ class image_converter:
         if (abs(cX[i]-cX[0])<15):
           TopTwo.append(contoursSorted[i])
 
+
+      #Perspective Transform Points!
+      #X1,Y1 top left point
+      #X2,Y2 bottom right point
+      #X3,Y3 top right point
+      #X4,Y4 bottom left point
+
+
       X1 = 10000
-      Y1 = 10000
-      for i in range(len(TopTwo[0])):
-        if TopTwo[0][i][0][0] < X1:
-          X1= TopTwo[0][i][0][0]
-        if TopTwo[0][i][0][1] < Y1:
-          Y1= TopTwo[0][i][0][1]
+
+      if (len(TopTwo)>1):
+        for i in range(len(TopTwo[0])):
+          if TopTwo[0][i][0][0] < X1:
+            X1 = TopTwo[0][i][0][0]
 
       X2 = 0
-      Y2 = 0
+
       if (len(TopTwo)>1):
         for i in range(len(TopTwo[1])):
           if TopTwo[1][i][0][0] > X2:
-            X2= TopTwo[1][i][0][0]
-          if TopTwo[1][i][0][1] > Y2:
-            Y2= TopTwo[1][i][0][1]
+            X2 = TopTwo[1][i][0][0]
 
-      extract = cv_image[Y1:Y2+1, X1:X2+1]
+      Y1 = 10000
 
-      if (extract.size>0 and extract.size>0):
-        cv2.imshow("Extract", extract)
-        cv2.waitKey(1)
+      if (len(TopTwo)>1):
+        for i in range(len(TopTwo[0])):
+          if abs(TopTwo[0][i][0][0]-X1) < 10:
+            if TopTwo[0][i][0][1] < Y1:
+              Y1 = TopTwo[0][i][0][1]
+
+      Y2 = 0
+
+      if (len(TopTwo)>1):
+        for i in range(len(TopTwo[1])):
+          if abs(TopTwo[1][i][0][0]-X2) < 10:
+            if TopTwo[1][i][0][1] > Y2:
+              Y2 = TopTwo[1][i][0][1]
+
+      Y3 = 10000
+      X3 = X2
+
+      if (len(TopTwo)>1):
+        for i in range(len(TopTwo[0])):
+          if abs(TopTwo[0][i][0][0]-X3) < 10:
+            if TopTwo[0][i][0][1] < Y3:
+              Y3 = TopTwo[0][i][0][1]
+
+      Y4 = 0
+      X4 = X1
+
+      if (len(TopTwo)>1):
+        for i in range(len(TopTwo[1])):
+          if abs(TopTwo[1][i][0][0]-X4) < 10:
+            if TopTwo[1][i][0][1] > Y4:
+              Y4 = TopTwo[1][i][0][1]
 
       
+      TopLeft = (X1, Y1)
+      BottomRight = (X2, Y2)
+      TopRight = (X3, Y3)
+      BottomLeft = (X4, Y4)
 
-      contour_color = (0, 255, 0)
-      contour_thick = 2
-      rect = cv2.rectangle(cv_image, (X1, Y1), (X2, Y2), contour_color, contour_thick)
+      width = abs(X2-X1)
+      height = abs(Y2-Y1)
 
-      cv2.imshow("Contours", rect)
-      cv2.waitKey(1)
+      rows, cols, ch = cv_image.shape    
+      pts1 = np.float32([(TopLeft), TopRight, BottomLeft, BottomRight])
+      pts2 = np.float32([(0,0),(width, 0),(0,height),(width, height)])
+      M = cv2.getPerspectiveTransform(pts1,pts2)
+      dst = cv2.warpPerspective(cv_image, M, (cols, rows))
+
+      extract = dst[0:height, 0:width]
+
+      if((abs(width/height-0.85)<0.225) and X1 > 5 and X2 < 1275):
+        contour_color = (0, 255, 0)
+        contour_thick = 2
+
+        divided = cv2.line(extract, (0, int(0.33*height)), (width, int(0.33*height)), contour_color, contour_thick)
+        divided = cv2.line(extract, (0, int(0.68*height)), (width, int(0.68*height)), contour_color, contour_thick)
+        divided = cv2.line(extract, (0, int(0.88*height)), (width, int(0.88*height)), contour_color, contour_thick) 
+
+        if (extract.size>0):
+            cv2.imshow("Extract", extract)
+            cv2.waitKey(1)
+
+        rect = cv2.rectangle(cv_image, (X1, Y1), (X2, Y2), contour_color, contour_thick)
+
+        cv2.imshow("Contours", rect)
+        cv2.waitKey(1)
+      else:
+        cv2.imshow("Contours", cv_image)
+        cv2.waitKey(1)
+
 
     else:
       cv2.imshow("Contours", cv_image)
