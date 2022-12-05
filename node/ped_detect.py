@@ -20,7 +20,7 @@ class pedestrian_convertor:
   ## Constructor that declares which topics are being published to and subscribed to
   def __init__(self):
     self.drive_pub = rospy.Publisher("/R1/cmd_vel", Twist, queue_size=1)
-    self.cross_pub = rospy.Publisher("/crosswalk", String, queue_size=1)
+    self.cross_pub = rospy.Publisher("/crosswalk", String)
     self.cross_sub = rospy.Subscriber("/crosswalk", String, self.crosswalk_callback)
     self.bridge = CvBridge()
     self.image_sub = rospy.Subscriber("/R1/pi_camera/image_raw",Image,self.image_callback,queue_size=1,buff_size=2**24)
