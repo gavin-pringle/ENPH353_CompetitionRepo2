@@ -140,7 +140,7 @@ class image_converter:
 
       if (len(TopTwo)>1):
         for i in range(len(TopTwo[0])):
-          if abs(TopTwo[0][i][0][0]-X3) < 10:
+          if abs(TopTwo[0][i][0][0]-X3) < 15:
             if TopTwo[0][i][0][1] < Y3:
               Y3 = TopTwo[0][i][0][1]
 
@@ -149,7 +149,7 @@ class image_converter:
 
       if (len(TopTwo)>1):
         for i in range(len(TopTwo[1])):
-          if abs(TopTwo[1][i][0][0]-X4) < 10:
+          if abs(TopTwo[1][i][0][0]-X4) < 20:
             if TopTwo[1][i][0][1] > Y4:
               Y4 = TopTwo[1][i][0][1]
 
@@ -170,16 +170,44 @@ class image_converter:
 
       extract = dst[0:height, 0:width]
 
-      if((abs(width/height-0.85)<0.225) and X1 > 5 and X2 < 1275):
+      rectangle = Y1<Y4 and Y3<Y2 and X1<X2
+
+      if(height > 0 and (abs(width/height-0.85)<0.225) and X1 > 5 and X2 < 1275 and rectangle):
+
+
         contour_color = (0, 255, 0)
         contour_thick = 2
 
-        divided = cv2.line(extract, (0, int(0.33*height)), (width, int(0.33*height)), contour_color, contour_thick)
-        divided = cv2.line(extract, (0, int(0.68*height)), (width, int(0.68*height)), contour_color, contour_thick)
-        divided = cv2.line(extract, (0, int(0.88*height)), (width, int(0.88*height)), contour_color, contour_thick) 
+        ParkingSpace = extract[int(0.33*height):int(0.68*height), int(width/2):width]
+        License = extract[int(0.705*height):int(0.87*height), 0:width]
 
-        if (extract.size>0):
-            cv2.imshow("Extract", extract)
+        img = cv2.cvtColor(img_blur,cv2.COLOR_GRAY2RGB)
+
+        cv2.circle(img, TopLeft, 10, contour_color, contour_thick)
+        cv2.circle(img, TopRight, 10, contour_color, contour_thick)
+        cv2.circle(img, BottomLeft, 10, contour_color, contour_thick)
+        cv2.circle(img, BottomRight, 10, contour_color, contour_thick)
+
+        cv2.imshow("BlurWhite", img)
+        cv2.waitKey(1)
+
+        # divided = cv2.line(extract, (0, int(0.33*height)), (width, int(0.33*height)), contour_color, contour_thick)
+        # divided = cv2.line(extract, (0, int(0.68*height)), (width, int(0.68*height)), contour_color, contour_thick)
+        # divided = cv2.line(extract, (0, int(0.88*height)), (width, int(0.88*height)), contour_color, contour_thick) 
+
+        if (extract.size>50000 and extract.size<2000000):
+          cv2.imshow("Extract", extract)
+          cv2.waitKey(1)
+
+          License = cv2.resize(License,(600,300))
+          ParkingSpace = cv2.resize(ParkingSpace,(300,400))
+
+          if (ParkingSpace.size>0):
+            cv2.imshow("ParkingSpace", ParkingSpace)
+            cv2.waitKey(1)
+
+          if (License.size>0):
+            cv2.imshow("License", License)
             cv2.waitKey(1)
 
         rect = cv2.rectangle(cv_image, (X1, Y1), (X2, Y2), contour_color, contour_thick)
