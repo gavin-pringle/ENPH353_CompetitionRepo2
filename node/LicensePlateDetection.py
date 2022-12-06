@@ -11,6 +11,8 @@ import cv2
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
+import time
+import os
 
 ## Class that subscribes to image stream and can also publish velocity messages
 #
@@ -19,6 +21,8 @@ class image_converter:
 
   ## Constructor that declares which topics are being published to and subscribed to
   def __init__(self):
+    self.timer = 0
+    self.file_count = 0
     self.drive_pub = rospy.Publisher("/R1/cmd_vel", Twist, queue_size=1)
     self.bridge = CvBridge()
     self.image_sub = rospy.Subscriber("/R1/pi_camera/image_raw",Image,self.callback, queue_size=3)
@@ -29,6 +33,12 @@ class image_converter:
       cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
     except CvBridgeError as e:
       print(e)
+
+    path = os.path.dirname(os.path.realpath(__file__)) + "/"
+    output_path = 'RealWorldData/'
+
+    _,_, files = next(os.walk(path + output_path)) # list of strings of file names in /pictures
+    self.file_count = len(files)
 
     imgWidth = 1280
     imgHeight = 720
@@ -230,13 +240,18 @@ class image_converter:
           WhiteLicense = cv2.resize(WhiteLicense,(600,300))
           hsvParking = cv2.resize(hsvParking,(100,170))
 
-          if (ParkingSpace.size>0):
+
+          if (ParkingSpace.size>0 and (int(self.timer) - int(time.perf_counter())) > 5):
             cv2.imshow("ParkingSpace", hsvParking)
             cv2.waitKey(1)
+            self.timer = time.perf_counter()  # A few seconds later
+            cv2.imwrite(os.path.join(path+output_path +'parkingNumber', 'ParkingSpace'+String(self.file_count)+".png"), hsvParking)
 
-          if (License.size>0):
+          if (License.size>0 and int(self.timer - time.perf_counter()) > 5):
             cv2.imshow("License", WhiteLicense)
             cv2.waitKey(1)
+            self.timer = time.perf_counter()
+            cv2.imwrite(os.path.join(path+output_path+'license/', 'License'+String(self.file_count)+".png"), WhiteLicense)
 
         rect = cv2.rectangle(cv_image, (X1, Y1), (X2, Y2), contour_color, contour_thick)
 
