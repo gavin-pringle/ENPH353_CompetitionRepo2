@@ -228,7 +228,7 @@ class image_converter:
 
 
           WhiteLicense = cv2.resize(WhiteLicense,(600,300))
-          hsvParking = cv2.resize(hsvParking,(100,140))
+          hsvParking = cv2.resize(hsvParking,(100,170))
 
           if (ParkingSpace.size>0):
             cv2.imshow("ParkingSpace", hsvParking)
