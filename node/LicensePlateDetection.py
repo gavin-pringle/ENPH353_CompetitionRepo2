@@ -33,7 +33,7 @@ class image_converter:
     except CvBridgeError as e:
       print(e)
 
-    path = os.path.dirname(os.path.realpath(__file__)) + "/"
+    path = "/home/fizzer/cnn_repo/ENPH353_CompetitionRepo3/"
     output_path = 'RealWorldData/license'
 
     _,_, self.files = next(os.walk(path + output_path)) # list of strings of file names in /pictures
