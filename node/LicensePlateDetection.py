@@ -199,15 +199,43 @@ class image_converter:
           cv2.imshow("Extract", extract)
           cv2.waitKey(1)
 
-          License = cv2.resize(License,(600,300))
-          ParkingSpace = cv2.resize(ParkingSpace,(300,400))
+
+          hsvLicense = cv2.cvtColor(License, cv2.COLOR_BGR2HSV)
+
+          uh = 122
+          us = 255
+          uv = 255
+          lh = 118
+          ls = 80
+          lv = 0
+          lower_hsv = np.array([lh,ls,lv])
+          upper_hsv = np.array([uh,us,uv])
+        
+          WhiteLicense = cv2.inRange(hsvLicense, lower_hsv, upper_hsv)
+
+          hsvParking = cv2.cvtColor(ParkingSpace, cv2.COLOR_BGR2HSV)
+
+          uh = 5
+          us = 5
+          uv = 50
+          lh = 0
+          ls = 0
+          lv = 0
+          lower_hsv = np.array([lh,ls,lv])
+          upper_hsv = np.array([uh,us,uv])
+        
+          hsvParking = cv2.inRange(hsvParking, lower_hsv, upper_hsv)
+
+
+          WhiteLicense = cv2.resize(WhiteLicense,(600,300))
+          hsvParking = cv2.resize(hsvParking,(100,140))
 
           if (ParkingSpace.size>0):
-            cv2.imshow("ParkingSpace", ParkingSpace)
+            cv2.imshow("ParkingSpace", hsvParking)
             cv2.waitKey(1)
 
           if (License.size>0):
-            cv2.imshow("License", License)
+            cv2.imshow("License", WhiteLicense)
             cv2.waitKey(1)
 
         rect = cv2.rectangle(cv_image, (X1, Y1), (X2, Y2), contour_color, contour_thick)
