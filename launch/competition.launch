@@ -1,0 +1,25 @@
+<launch>
+    <node pkg="controller_pkg"
+         type="CompTimer.py"
+         name="CompTimer"
+         output="screen">
+    </node>
+
+    <node pkg="controller_pkg"
+         type="line_follow.py"
+         name="line_follow" 
+         output="screen">
+    </node>
+
+    <node pkg="controller_pkg"
+         type="ped_detect.py"
+         name="ped_detect" 
+         output="screen">
+    </node>
+
+    <node pkg="controller_pkg"
+         type="LicensePlateDetection.py"
+         name="LicensePlateDetection"
+         output="screen">
+    </node>
+</launch>
