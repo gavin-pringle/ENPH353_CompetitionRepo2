@@ -13,6 +13,13 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 import time
 import os
+from tensorflow.keras import layers
+from tensorflow.keras import models
+from tensorflow.keras import optimizers
+from tensorflow.keras.utils import plot_model
+from tensorflow.keras import backend
+
+
 
 ## Class that subscribes to image stream and can also publish velocity messages
 #
@@ -25,6 +32,11 @@ class image_converter:
     self.drive_pub = rospy.Publisher("/R1/cmd_vel", Twist, queue_size=1)
     self.bridge = CvBridge()
     self.image_sub = rospy.Subscriber("/R1/pi_camera/image_raw",Image,self.callback, queue_size=3)
+
+
+  def characterFromOneHot(self,chara):
+    characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    return characters[chara]
 
   def callback(self,data):
     # convert image to a format compatible with OpenCV
@@ -242,16 +254,63 @@ class image_converter:
 
           output = 'RealWorldData/'
 
-          if (ParkingSpace.size>0 and (int(time.perf_counter()) -int(self.timer)) > 2):
-            cv2.imshow("ParkingSpace", hsvParking)
-            cv2.waitKey(1)
-            cv2.imwrite(os.path.join(path+output +'parkingNumber', 'ParkingSpace'+ str(self.file_count)+".png"), hsvParking)
 
-          if (License.size>0 and (int(time.perf_counter()) -int(self.timer)) > 2):
-            cv2.imshow("License", WhiteLicense)
-            cv2.waitKey(1)
-            self.timer = time.perf_counter()
-            cv2.imwrite(os.path.join(path+output +'license', 'License'+ str(self.file_count)+".png"), WhiteLicense)
+################
+
+
+          WhiteLicense = cv2.cvtColor(WhiteLicense,cv2.COLOR_GRAY2RGB)
+          hsvParking = cv2.cvtColor(hsvParking,cv2.COLOR_GRAY2RGB)
+
+          LicensePos = np.empty((4, 170, 100, 3))
+
+          LicensePos[0] = WhiteLicense[80:250, 50:150]
+          LicensePos[1] = WhiteLicense[80:250, 150:250]
+          LicensePos[2] = WhiteLicense[80:250, 345:445]
+          LicensePos[3] = WhiteLicense[80:250, 445:545]
+
+          prediction = []
+
+          if (hsvParking.size>0 and WhiteLicense.size>0 and (int(time.perf_counter()) -int(self.timer)) > 1):
+            my_model = models.load_model("/home/fizzer/ros_ws/src/controller_pkg/node/my_model.h5")
+            
+            x1 = np.zeros((1,170,100,3))
+            x1[0] = hsvParking
+            output=my_model.predict(x1)
+            prediction.append(self.characterFromOneHot(np.argmax(output)))
+
+            x2 = np.zeros((1,170,100,3))
+            x2[0] = LicensePos[0]
+            output=my_model.predict(x2)
+            prediction.append(self.characterFromOneHot(np.argmax(output)))
+
+            x3 = np.zeros((1,170,100,3))
+            x3[0] = LicensePos[1]
+            output=my_model.predict(x3)
+            prediction.append(self.characterFromOneHot(np.argmax(output)))
+
+
+            x4 = np.zeros((1,170,100,3))
+            x4[0] = LicensePos[2]
+            output=my_model.predict(x4)
+            prediction.append(self.characterFromOneHot(np.argmax(output)))
+
+            x5 = np.zeros((1,170,100,3))
+            x5[0] = LicensePos[3]
+            output=my_model.predict(x5)
+            prediction.append(self.characterFromOneHot(np.argmax(output)))
+
+            print(prediction)
+
+          # if (ParkingSpace.size>0 and (int(time.perf_counter()) -int(self.timer)) > 2):
+          #   cv2.imshow("ParkingSpace", hsvParking)
+          #   cv2.waitKey(1)
+          #   cv2.imwrite(os.path.join(path+output +'parkingNumber', 'ParkingSpace'+ str(self.file_count)+".png"), hsvParking)
+
+          # if (License.size>0 and (int(time.perf_counter()) -int(self.timer)) > 2):
+          #   cv2.imshow("License", WhiteLicense)
+          #   cv2.waitKey(1)
+          #   self.timer = time.perf_counter()
+          #   cv2.imwrite(os.path.join(path+output +'license', 'License'+ str(self.file_count)+".png"), WhiteLicense)
 
         rect = cv2.rectangle(cv_image, (X1, Y1), (X2, Y2), contour_color, contour_thick)
 
