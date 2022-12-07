@@ -21,11 +21,11 @@ class timer_converter:
         self.drive_pub = rospy.Publisher("/R1/cmd_vel", Twist, queue_size=1)
 
         rospy.sleep(1)
-        message = str('TeamRed,multi21,0,FE08')
+        message = str('Loopy,multi21,0,FE08')
         self.score_pub.publish(message)
 
     def clock_callback(self, data):
-        if "  secs: 240" in str(data):
+        if "  secs: 150" in str(data):
             os.system("rosnode kill /LicensePlateDetection")
             os.system("rosnode kill /license_server")
             os.system("rosnode kill /ped_detect")

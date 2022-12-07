@@ -18,7 +18,7 @@ rospy.init_node('start_up', anonymous=True)
 pub = rospy.Publisher('/license_plate', String, queue_size=1)
 rospy.sleep(1)
 
-message = str('TeamRed,multi21,0,FE08')
+message = str('TeamRed,multi21,{},{}+{}+{}+{}')
 
 pub.publish(message)
 

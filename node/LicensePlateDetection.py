@@ -28,6 +28,7 @@ class image_converter:
 
   ## Constructor that declares which topics are being published to and subscribed to
   def __init__(self):
+    self.scorepub = rospy.Publisher('/license_plate', String, queue_size=1)
     self.timer = 0
     self.drive_pub = rospy.Publisher("/R1/cmd_vel", Twist, queue_size=1)
     self.bridge = CvBridge()
@@ -210,16 +211,16 @@ class image_converter:
         cv2.circle(img, BottomLeft, 10, contour_color, contour_thick)
         cv2.circle(img, BottomRight, 10, contour_color, contour_thick)
 
-        cv2.imshow("BlurWhite", img)
-        cv2.waitKey(1)
+        # cv2.imshow("BlurWhite", img)
+        # cv2.waitKey(1)
 
         # divided = cv2.line(extract, (0, int(0.33*height)), (width, int(0.33*height)), contour_color, contour_thick)
         # divided = cv2.line(extract, (0, int(0.68*height)), (width, int(0.68*height)), contour_color, contour_thick)
         # divided = cv2.line(extract, (0, int(0.88*height)), (width, int(0.88*height)), contour_color, contour_thick) 
 
         if (extract.size>50000 and extract.size<2000000):
-          cv2.imshow("Extract", extract)
-          cv2.waitKey(1)
+          # cv2.imshow("Extract", extract)
+          # cv2.waitKey(1)
 
 
           hsvLicense = cv2.cvtColor(License, cv2.COLOR_BGR2HSV)
@@ -252,10 +253,7 @@ class image_converter:
           WhiteLicense = cv2.resize(WhiteLicense,(600,300))
           hsvParking = cv2.resize(hsvParking,(100,170))
 
-          output = 'RealWorldData/'
-
-
-################
+          # output = 'RealWorldData/'
 
 
           WhiteLicense = cv2.cvtColor(WhiteLicense,cv2.COLOR_GRAY2RGB)
@@ -301,6 +299,11 @@ class image_converter:
 
             print(prediction)
 
+            message = str('Loopy,multi21,{},{}{}{}{}').format(prediction[0], prediction[1], prediction[2], prediction[3], prediction[4])
+
+            self.scorepub.publish(message)
+
+
           # if (ParkingSpace.size>0 and (int(time.perf_counter()) -int(self.timer)) > 2):
           #   cv2.imshow("ParkingSpace", hsvParking)
           #   cv2.waitKey(1)
@@ -312,18 +315,18 @@ class image_converter:
           #   self.timer = time.perf_counter()
           #   cv2.imwrite(os.path.join(path+output +'license', 'License'+ str(self.file_count)+".png"), WhiteLicense)
 
-        rect = cv2.rectangle(cv_image, (X1, Y1), (X2, Y2), contour_color, contour_thick)
+        # rect = cv2.rectangle(cv_image, (X1, Y1), (X2, Y2), contour_color, contour_thick)
 
-        cv2.imshow("Contours", rect)
-        cv2.waitKey(1)
-      else:
-        cv2.imshow("Contours", cv_image)
-        cv2.waitKey(1)
+        # cv2.imshow("Contours", rect)
+        # cv2.waitKey(1)
+      # else:
+      #   cv2.imshow("Contours", cv_image)
+      #   cv2.waitKey(1)
 
 
-    else:
-      cv2.imshow("Contours", cv_image)
-      cv2.waitKey(1)
+    # else:
+    #   cv2.imshow("Contours", cv_image)
+    #   cv2.waitKey(1)
 
 
 
