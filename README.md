@@ -1,7 +1,7 @@
 # ENPH353_CompetitionRepo2
 
-The controller_pkg repository is what each team will create. This is a ROS package containing:
+The controller_pkg repository contains the scripts that execute the robot's desired functionality when launched. This is a ROS package containing:
 
-- Control algorithm for the robot
-- Potentially also includes a convolution neural network model or a reinforcement learning policy file trained from [repo 3] and [repo 4] respectively
-
+- Control algorithm for the robot in scripts CompTimer.py, LicensePlateDetection.py, line_follow.py, and ped_detct.py.
+- The launch file competition.launch that launches the above scripts.
+- A convolutional neural network model file trained from ENPH353_CompetitionRepo3 (my_model.h5), used in LicensePlateDetection.py.
