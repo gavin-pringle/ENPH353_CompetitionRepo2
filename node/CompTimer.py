@@ -25,7 +25,7 @@ class timer_converter:
         self.score_pub.publish(message)
 
     def clock_callback(self, data):
-        if "  secs: 150" in str(data):
+        if "  secs: 110" in str(data):
             os.system("rosnode kill /LicensePlateDetection")
             os.system("rosnode kill /license_server")
             os.system("rosnode kill /ped_detect")
